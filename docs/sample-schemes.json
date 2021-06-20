@@ -1,0 +1,33 @@
+{
+    "schemes": [
+        {
+            "match_conditions": [
+                {
+                    "query": "import",
+                    "type": "startswith"
+                },
+                {
+                    "query": "{(.*)}",
+                    "type": "regex"
+                }
+            ],
+            "extraction_patterns": [
+                {
+                    "properties": {
+                        "property_name": "from_path",
+                        "extraction_patterns":[
+                            {
+                                "query": "from\\s*?(?:\"|\\')(.*)(?:\"|\\')"
+                            }
+                        ]
+                    },
+                    "query": "{(.*)}"
+                },
+                {
+                    "type": "findall",
+                    "query": "(\\w+)"
+                }
+            ]
+        }
+    ]
+}

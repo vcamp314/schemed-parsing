@@ -19,9 +19,11 @@ How to use (template example, to be replaced with actual project's example)
 
 example usage::
 
-    import parse
-    parse.sample_func()
+    import pyparse
+    pyparse.parse('sample text', parsing_schemes)
 
+
+For the structure of the above :code:`parsing_scheme` parameter, please see the parsing scheme example document in the docs folder <./docs/sample-parsing-scheme-example.rst>`
 
 ++++++++
 Testing
