@@ -17,18 +17,19 @@ example composition of a list of schemes covering a single kind of javascript im
                 ],
                 "extraction_patterns": [
                     {
-                        "properties": {
-                            "property_name": "from_path",
-                            "extraction_patterns":[
-                                {
-                                    "query": "from\\s*?(?:\"|\\')(.*)(?:\"|\\')"
-                                }
-                            ]
-                        },
+                        "properties": [
+                            {
+                                "property_name": "from_path",
+                                "extraction_patterns":[
+                                    {
+                                        "query": "from\\s*?(?:\"|\\')(.*)(?:\"|\\')"
+                                    }
+                                ]
+                            }
+                        ],
                         "query": "{(.*)}"
                     },
                     {
-                        "type": "findall",
                         "query": "(\\w+)"
                     }
                 ]
@@ -41,13 +42,15 @@ the above example would apply to the below example import statement structure::
 
      import { sampleImportName1, sampleImportName2 } from './sample/path'
 
-the parsing will extract the names, `sampleImportName1`, `sampleImportName2` into a dict of the below structure::
+the parsing will extract the names, `sampleImportName1`, `sampleImportName2` into a list of the below structure::
 
 
-    "sampleImportName1": {
+    {
+        "name": "sampleImportName1",
         "from_path": "./sample/path"
-    }
-    "sampleImportName2": {
+    },
+    {
+        "name": "sampleImportName2",
         "from_path": "./sample/path"
     }
 
@@ -85,17 +88,18 @@ be applied in order, where the result of one will be used as the text to be pars
     "extraction_patterns": [
         {
             "properties": [
-                "property_name": "from_path",
-                "extraction_patterns":[
-                    {
-                        "query": "from\s*?(?:"|\')(.*)(?:"|\')"
-                    }
-                ]
+                {
+                    "property_name": "from_path",
+                    "extraction_patterns":[
+                        {
+                            "query": "from\\s*?(?:\"|\\')(.*)(?:\"|\\')"
+                        }
+                    ]
+                }
             ],
-            "query": "{(.*)}",
+            "query": "{(.*)}"
         },
         {
-            "type": "findall",
             "query": "(\w+)"
         }
     ...
@@ -109,12 +113,14 @@ text to be parsed. In this case, that is the path to the package to import from:
 
     ...
     "properties": [
-        "property_name": "from_path",
-        "extraction_patterns":[
-            {
-                "query": "from\s*?(?:"|\')(.*)(?:"|\')"
-            }
-        ]
+        {
+            "property_name": "from_path",
+            "extraction_patterns":[
+                {
+                    "query": "from\s*?(?:"|\')(.*)(?:"|\')"
+                }
+            ]
+        }
     ],
     ...
 
@@ -128,11 +134,10 @@ extraction from the result of the previous one)
 This resulting text will then have the next expression applied to it, :code:`(\w+)`, that will
 extract just the two resulting names in a list.
 
-Note that if properties are defined downstream from an element in :code:`extraction_patterns`
-that has a :code:`type` defined as :code:`findall` the properties found on a single match will
-only be added as attributes to the names found on that single match.
+Note that properties defined upstream will apply to all matches found downstream.
 
-Otherwise it will be added to all names found in this scheme.
+This means that properties defined on the first element will be added to all matches
+while properties defined on subsequent elements will only apply to specific matches
 
 ++++++++++++++++
 Principles
@@ -149,12 +154,13 @@ names can be defined to have a value and a definition location, which we will re
 In the above example::
 
 
-    "sampleImportName": {
-        "value": undefined
+    {
+        "name": "sampleImportName",
         "from_path": "sample/path"
-    }
-    "sampleImportName": {
-        "value": "paramValue"
+    },
+    {
+        "name": "paramName",
+        "value": "paramValue",
         "scope": "./"
     }
 

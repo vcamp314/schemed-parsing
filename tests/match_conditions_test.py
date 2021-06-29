@@ -75,6 +75,9 @@ def test_endswith_returns_false_if_str_does_not_end_with_query():
     assert not pyparse.check_match_conditions(txt, match_conditions)
 
 
+# regex tests ######################
+
+
 def test_regex_returns_false_if_does_not_match():
     txt = "import { sampleImportName1, sampleImportName2 } from './sample/path'"
     match_conditions = [
@@ -97,6 +100,9 @@ def test_regex_returns_true_if_matches():
     assert pyparse.check_match_conditions(txt, match_conditions)
 
 
+# contains tests ######################
+
+
 def test_contains_returns_false_if_txt_does_not_contains_query():
     txt = "import('@middleware/users')"
     match_conditions = [
@@ -117,4 +123,3 @@ def test_contains_returns_true_if_txt_contains_query():
         },
     ]
     assert pyparse.check_match_conditions(txt, match_conditions)
-
