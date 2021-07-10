@@ -1,5 +1,4 @@
 import os
-import json
 import pytest
 from .context import pyparse
 
@@ -50,7 +49,7 @@ def test_multiple_extraction_pattern_that_returns_multiple_items():
     assert pyparse.extract_names(txt, multiple_extraction_pattern) == expected
 
 
-def test_single_extraction_pattern_with_properties():
+def test_single_extraction_pattern_with_property():
     txt = "import sampleImportName from './sample/path'"
     extraction_pattern_with_props = [
         {
@@ -68,4 +67,156 @@ def test_single_extraction_pattern_with_properties():
         },
     ]
     expected = [{'name': 'sampleImportName', 'from_path': './sample/path'}]
+    assert pyparse.extract_names(txt, extraction_pattern_with_props) == expected
+
+
+def test_single_extraction_pattern_with_multiple_properties():
+    txt = "@Prop({ required: false, type: String, default: 'default' })readonly sampleParam!: string"
+    extraction_pattern_with_props = [
+        {
+            'query': r'\)readonly (.*)!',
+            'properties': [
+                {
+                    'property_name': 'required',
+                    'extraction_patterns': [
+                        {
+                            'query': r'required: (.*?),'
+                        }
+                    ]
+                },
+                {
+                    'property_name': 'type',
+                    'extraction_patterns': [
+                        {
+                            'query': r'type: (.*?),'
+                        }
+                    ]
+                },
+                {
+                    'property_name': 'default',
+                    'extraction_patterns': [
+                        {
+                            'query': r'default: (.*?) }'
+                        }
+                    ]
+                }
+            ],
+        },
+    ]
+    expected = [{'name': 'sampleParam', 'required': 'false', 'type': 'String', 'default': "'default'"}]
+    assert pyparse.extract_names(txt, extraction_pattern_with_props) == expected
+
+
+def test_single_extraction_pattern_with_deep_properties():
+    txt = "@Prop({ required: false, type: String, default: 'default' })readonly sampleParam!: string"
+    extraction_pattern_with_props = [
+        {
+            'query': r'\)readonly (.*)!',
+            'properties': [
+                {
+                    'property_name': 'required',
+                    'extraction_patterns': [
+                        {
+                            'query': r'\((.*)\)'
+                        },
+                        {
+                            'query': r'required: (.*?),'
+                        }
+                    ]
+                },
+            ],
+        },
+    ]
+    expected = [{'name': 'sampleParam', 'required': 'false'}]
+    assert pyparse.extract_names(txt, extraction_pattern_with_props) == expected
+
+
+def test_single_extraction_pattern_with_multiple_matches_and_props():
+    txt = "def set_props(props: dict, prop_props: dict, matches_found: list, field_name: str):"
+    extraction_pattern_with_props = [
+        {
+            'query': r'\((.*)\)',
+        },
+        {
+            'query': r'(.*?)(?:,|$)',
+        },
+        {
+            'query': r'(\w+):',
+            'properties': [
+                {
+                    'property_name': 'type',
+                    'extraction_patterns': [
+                        {
+                            'query': r': (.*)\s*?'
+                        }
+                    ]
+                },
+            ],
+        }
+    ]
+    expected = [
+        {'name': 'props', 'type': 'dict'},
+        {'name': 'prop_props', 'type': 'dict'},
+        {'name': 'matches_found', 'type': 'list'},
+        {'name': 'field_name', 'type': 'str'},
+    ]
+    assert pyparse.extract_names(txt, extraction_pattern_with_props) == expected
+
+
+def test_single_extraction_pattern_that_has_prop_with_object_value():
+    txt = "def set_props(props: dict, prop_props: dict, matches_found: list, field_name: str):"
+    extraction_pattern_with_props = [
+        {
+            'query': r'def (.*)\(',
+            'properties': [
+                {
+                    'property_name': 'args',
+                    'extraction_patterns': [
+                        {
+                            'query': r'\((.*)\)',
+                        },
+                        {
+                            'query': r'(.*?)(?:,|$)',
+                        },
+                        {
+                            'query': r'(\w+):',
+                            'properties': [
+                                {
+                                    'property_name': 'type',
+                                    'extraction_patterns': [
+                                        {
+                                            'query': r': (.*)\s*?'
+                                        }
+                                    ]
+                                },
+                            ],
+                        }
+                    ]
+                },
+            ],
+        },
+    ]
+    expected = [
+        {
+            'name': 'set_props',
+            'args': [
+                {
+                    'value': 'props',
+                    'type': 'dict'
+                },
+                {
+                    'value': 'prop_props',
+                    'type': 'dict'
+                },
+                {
+                    'value': 'matches_found',
+                    'type': 'list'
+                },
+                {
+                    'value': 'field_name',
+                    'type': 'str'
+                }
+            ]
+        },
+    ]
     assert pyparse.extract_names(txt, extraction_pattern_with_props) == expected

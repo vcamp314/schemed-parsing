@@ -67,15 +67,32 @@ def set_names(names: list, props: dict, matches_found: list, field_name: str = '
     names += [{field_name: match, **props} for match in matches_found]
 
 
+# todo: document this function's biz logic
 def set_props(props: dict, prop_props: dict, matches_found: list, field_name: str):
+    # don't add props if nothing matched
+    if not matches_found:
+        return
+
+    # single match should return just the value, not a list
+    # multiple matches should be returned as a list
     resulting_match = matches_found
     if len(matches_found) == 1:
         resulting_match = matches_found[0]
 
-        props[field_name] = resulting_match
+    # if the prop has its own props, return it as an object with each of its prop fields
+    resulting_prop = {'value': resulting_match, **prop_props} if prop_props != {} else resulting_match
 
-    if prop_props != {}:
-        props[field_name] = {'value': resulting_match, **prop_props}
+    # in case of multiple props with the same field name, append them to a list
+    current_value_in_field = props.get(field_name)
+    if current_value_in_field:
+        if type(current_value_in_field) is not list:
+            props[field_name] = [current_value_in_field]
+
+        props[field_name].append(resulting_prop)
+
+    # only one prop with this field name, set the value directly
+    else:
+        props[field_name] = resulting_prop
 
 
 # iterative function for going through each level of extraction patterns
@@ -100,7 +117,7 @@ def apply_extraction_patterns(set_results_func: typing.Callable, names: typing.U
             # if there are more extraction patterns,
             # apply them to the next set of matches
             apply_extraction_patterns(set_results_func, names, next_matches, props, next_index,
-                                      extraction_patterns)
+                                      extraction_patterns, result_field_name)
         else:
             # if there are no more extraction patterns,
             # set final results using passed function call

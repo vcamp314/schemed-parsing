@@ -1,6 +1,9 @@
-Parsing scheme example
+block parsing example
 =================================
-example composition of a list of schemes (containing only one scheme here) covering a single kind of javascript import statements::
+A block here is defined as multiline (one or more lines) of text to be parsed as a single string
+for a particular pattern
+
+example composition of a list of schemes  covering a single kind of javascript import statements::
 
     {
         "schemes": [
@@ -38,20 +41,28 @@ example composition of a list of schemes (containing only one scheme here) cover
     }
 
 
-the above example would apply to the below example import statement structure::
+the above example would apply to the below example multiline import statement structure::
 
-     import { sampleImportName1, sampleImportName2 } from './sample/path'
+      import {
+          longNameA,
+          longNameB,
+          longNameC,
+      } from '/some/pretty/long/path/'
 
-the parsing will extract the names, `sampleImportName1`, `sampleImportName2` into a list of the below structure::
+the parsing will extract the names, `longNameA`, `longNameB`, `longNameC` into a list of the below structure::
 
 
     [
         {
-            "name": "sampleImportName1",
+            "name": "longNameA",
             "from_path": "./sample/path"
         },
         {
-            "name": "sampleImportName2",
+            "name": "longNameB",
+            "from_path": "./sample/path"
+        }
+        {
+            "name": "longNameC",
             "from_path": "./sample/path"
         }
     ]
