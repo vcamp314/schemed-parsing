@@ -141,7 +141,6 @@ def test_find_flat_blocks_and_their_params():
     result_names = []
     line_no = 1
     pyparse.process_multiple_block_matches(txt, block_schemes, result_blocks, result_names, line_no)
-    print(result_names)
 
     assert result_blocks == expected_blocks
     assert result_names == expected_names

@@ -67,14 +67,8 @@ def find_blocks(txt: str, schemes: list, search_regex, blocklist: list, names: l
                 line_no: int):
     match = search_regex.search(txt)
     next_txt = txt
-    curr_block_id = len(blocklist) - 1
 
     last_unclosed_block_index = get_last_unclosed_block_index(blocklist)
-
-
-    # if last_unclosed_block_index != -1:
-    #     last_unclosed_block_names = parse(curr_txt, schemes_with_block_id_prop)
-    #     names += current_block_name
 
     if match:
         first_matching_scheme = next(
@@ -82,6 +76,8 @@ def find_blocks(txt: str, schemes: list, search_regex, blocklist: list, names: l
             scheme.get('block_start_pattern') == match.group() or scheme.get('block_end_pattern') == match.group())
 
         curr_txt = txt[:match.start()]
+        # set all name matches for last unclosed block for text up until new block pattern match
+        parse_block_names(curr_txt, last_unclosed_block_index, schemes, names)
 
         # set the next text to search in from the remaining string in txt after the match
         next_txt = txt[match.start() + len(match.group()):]
@@ -91,30 +87,26 @@ def find_blocks(txt: str, schemes: list, search_regex, blocklist: list, names: l
                 'block_category': first_matching_scheme['block_category'],
                 'starting_line_no': line_no
             }
-            parent_block_index = get_last_unclosed_block_index(blocklist)
+            parent_block_index = last_unclosed_block_index
             if parent_block_index != -1:
                 curr_block['parent_id'] = parent_block_index
 
             blocklist.append(curr_block)
-            curr_block_id += 1 # no, can't be sure of this...
 
             # todo: apply starting property extraction patterns here - test prop extraction functions on their own
             #  and then use them here (add to curr_block)
 
         if search_str_pattern_type[match.group()] == 'end':
-            last_unclosed_block_index = get_last_unclosed_block_index(blocklist,
+            last_unclosed_matched_block_index = get_last_unclosed_block_index(blocklist,
                                                                       first_matching_scheme['block_category'])
-            if last_unclosed_block_index != -1:
+            if last_unclosed_matched_block_index != -1:
                 blocklist[last_unclosed_block_index]['ending_line_no'] = line_no
 
             # todo: apply ending property extraction patterns here (add to curr_block) - same functions as starting
 
-        # todo: write function to add props to scheme extraction patterns (top level?) to insert block id value
-        schemes_with_block_id_prop = add_block_id_prop_to_schemes(schemes, 0)
-
-        current_block_names = parse(curr_txt, schemes_with_block_id_prop)
-        names += current_block_names
         find_blocks(next_txt, schemes, search_regex, blocklist, names, search_str_pattern_type, line_no)
+    else:
+        parse_block_names(txt, last_unclosed_block_index, schemes, names)
 
 
 def get_last_unclosed_block_index(blocklist: list, category: str = None) -> int:
@@ -144,10 +136,12 @@ def add_block_id_prop_to_schemes(schemes, block_id):
     return modified_schemes
 
 
-def add_attr(attr: str, attr_value: str, list_of_dicts: list ):
+def parse_block_names(txt: str, last_unclosed_block_index: int, schemes: list, names: list):
+    if last_unclosed_block_index != -1:
+        schemes_with_block_id_prop = add_block_id_prop_to_schemes(schemes, last_unclosed_block_index)
 
-    if list_of_dicts:
-        pass
+        last_unclosed_block_names = parse(txt, schemes_with_block_id_prop)
+        names += last_unclosed_block_names
 
 
 def get_block_schemes(schemes: list) -> list:
