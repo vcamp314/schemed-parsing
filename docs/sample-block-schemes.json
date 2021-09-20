@@ -1,0 +1,40 @@
+{
+    "schemes": [
+        {
+            "block_schemes": [
+                {
+                    "block_start_pattern": {
+                        "query": "{"
+                    },
+                    "block_end_pattern": {
+                        "query": "}",
+                        "properties": [
+                            {
+                                "property_name": "from_path",
+                                "extraction_patterns":[
+                                    {
+                                        "query": "from\\s*?(?:\"|\\')(.*)(?:\"|\\')"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "match_conditions": [
+                        {
+                            "query": "import",
+                            "type": "startswith"
+                        }
+                    ],
+                    "extraction_patterns": [
+                        {
+                            "query": "{(.*)}"
+                        },
+                        {
+                            "query": "(\\w+)"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

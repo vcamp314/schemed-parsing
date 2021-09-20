@@ -8,32 +8,38 @@ example composition of a list of schemes  covering a single kind of javascript i
     {
         "schemes": [
             {
-                "match_conditions": [
+                "block_schemes": [
                     {
-                        "query": "import",
-                        "type": "startswith"
-                    },
-                    {
-                        "query": "{(.*)}",
-                        "type": "regex"
-                    }
-                ],
-                "extraction_patterns": [
-                    {
-                        "properties": [
+                        "block_start_pattern": {
+                            "query": "{"
+                        },
+                        "block_end_pattern": {
+                            "query": "}",
+                            "properties": [
+                                {
+                                    "property_name": "from_path",
+                                    "extraction_patterns":[
+                                        {
+                                            "query": "from\\s*?(?:\"|\\')(.*)(?:\"|\\')"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "match_conditions": [
                             {
-                                "property_name": "from_path",
-                                "extraction_patterns":[
-                                    {
-                                        "query": "from\\s*?(?:\"|\\')(.*)(?:\"|\\')"
-                                    }
-                                ]
+                                "query": "import",
+                                "type": "startswith"
                             }
                         ],
-                        "query": "{(.*)}"
-                    },
-                    {
-                        "query": "(\\w+)"
+                        "extraction_patterns": [
+                            {
+                                "query": "{(.*)}"
+                            },
+                            {
+                                "query": "(\\w+)"
+                            }
+                        ]
                     }
                 ]
             }
@@ -60,7 +66,7 @@ the parsing will extract the names, `longNameA`, `longNameB`, `longNameC` into a
         {
             "name": "longNameB",
             "from_path": "./sample/path"
-        }
+        },
         {
             "name": "longNameC",
             "from_path": "./sample/path"
@@ -70,113 +76,26 @@ the parsing will extract the names, `longNameA`, `longNameB`, `longNameC` into a
 ++++++++++++++++
 How it works
 ++++++++++++++++
+Defining a block_schemes in a scheme element will indicate to the parser to look at the schemes
+inside and apply them in order where these schemes are defined as block or non-block schemes.
 
-Each scheme in the list will be applied if and only if all the conditions in the :code:`match_conditions`
-are met::
+Block scheme definition
+#########################
 
-    ...
-    "match_conditions": [
-        {
-            "query": "import",
-            "type": "startswith"
-        },
-        {
-            "query": "{(.*)}",
-            "type": "regex"
-        }
-    ],
-    ...
+Defining the block_start_patterns and block_end_patterns indicates to the parser that this
+this scheme is a block scheme and will cause the scheme to look for the end patterns for
+each line after the start pattern has been opened until it finds a match.
 
-Possible match conditions supported are:
-
-* startwith
-* endwith
-* contains
-* regex
-
-If all the conditions are met, the regex expressions in the :code:`extraction_patterns` will
-be applied in order, where the result of one will be used as the text to be parsed for the next::
-
-    ...
-    "extraction_patterns": [
-        {
-            "properties": [
-                {
-                    "property_name": "from_path",
-                    "extraction_patterns":[
-                        {
-                            "query": "from\\s*?(?:\"|\\')(.*)(?:\"|\\')"
-                        }
-                    ]
-                }
-            ],
-            "query": "{(.*)}"
-        },
-        {
-            "query": "(\w+)"
-        }
-    ...
-
-In the first extraction pattern, the expression :code:`{(.*)}` will extract::
-
-    { sampleImportName1, sampleImportName2 }
-
-The :code:`properties` attribute defines any additional properties to be extracted from the
-text to be parsed. In this case, that is the path to the package to import from::
-
-    ...
-    "properties": [
-        {
-            "property_name": "from_path",
-            "extraction_patterns":[
-                {
-                    "query": "from\s*?(?:"|\')(.*)(?:"|\')"
-                }
-            ]
-        }
-    ],
-    ...
-
-This extracts the below::
-
-    'sample/path'
-
-(Reminder: Each element in the :code:`extraction_patterns` receives the text to be parsed for
-extraction from the result of the previous one)
-
-This resulting text will then have the next expression applied to it, :code:`(\w+)`, that will
-extract just the two resulting names in a list.
-
-Note that properties defined upstream will apply to all matches found downstream.
-
-This means that properties defined on the first element will be added to all matches
-while properties defined on subsequent elements will only apply to specific matches
-
-++++++++++++++++
-Principles
-++++++++++++++++
-Ideally, each pattern list should be defined for a keyword for which names need to be extracted, for example::
-
-    import sampleImportName from 'sample/path'
-    const paramName = 'paramValue'
-
-keywords are import and const here, names are sampleImportName, and paramName
-
-names can be defined to have a value and a definition location, which we will refer to as scope.
-
-In the above example::
+Each subsequent line will be appended into one string until the end pattern is found, and the
+resulting string will have the extraction pattern applied.
 
 
-    {
-        "name": "sampleImportName",
-        "from_path": "sample/path"
-    },
-    {
-        "name": "paramName",
-        "value": "paramValue",
-        "scope": "./"
-    }
+should it find another open pattern before finding an end, this scheme will be started for
+the new block as well and when that finishes, it will resume the search for the previous one.
 
 
-having scope as its own object, defining both a file path and an reference to the
-block containing the name definition is in consideration.
+The structure of these patterns is the same as that for the extraction patterns and work in
+the same way. please see parsing-scheme-example.rst for an explanation of how extraction
+patterns work.
+
+

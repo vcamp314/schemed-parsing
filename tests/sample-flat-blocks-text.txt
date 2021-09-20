@@ -1,0 +1,1 @@
+if(isTest == true){ doSomething() }; if(isSpecialTest == true) { doSomethingElse() };

@@ -6,6 +6,11 @@ import re
 import typing
 
 
+# todo: rename module to schemed-parsing todo: create error handling layer
+#  todo: evaluate the possibility of creating blocklist class to make functions
+#   like get_last_opened_block_that_ends_with more readable
+
+
 def parse(txt: str, schemes: list) -> list:
     """Parse text based on provided list of parsing schemes"
     >>> parse('some text', [])
@@ -22,8 +27,158 @@ def parse(txt: str, schemes: list) -> list:
     return all_extracted_names
 
 
+def parse_all_lines(line_gen: typing.Generator, schemes: list) -> list:
+    text_to_parse = ''
+    is_in_block = False
+    block_list = []
+
+    for line in line_gen:
+        for scheme in schemes:
+            block_schemes = scheme.get('block_schemes')
+            if block_schemes:
+                check_block_schemes(line, text_to_parse, block_schemes)
+
+    return block_list
+
+
+# todo: add logic in function that calls this function to filter schemes based on match_conditions before passing
+#  schemes
+def process_multiple_block_matches(txt: str, schemes: list, blocklist: list, names: list, line_no: int):
+    block_schemes = get_block_schemes(schemes)
+
+    search_str_pattern_type = {scheme['block_start_pattern']: 'start' for scheme in block_schemes}
+    search_str_pattern_type = {**search_str_pattern_type,
+                               **{scheme['block_end_pattern']: 'end' for scheme in block_schemes}}
+
+    search_str = '|'.join(
+        [scheme['block_start_pattern'] + '|' + scheme['block_end_pattern'] for scheme in
+         block_schemes])
+    search_regex = re.compile(search_str)
+
+    find_blocks(txt, schemes, search_regex, blocklist, names, search_str_pattern_type, line_no)
+
+
+# todo: document this function's biz logic
+# small is better than big... so process each individual line separately
+# check for opening and closing of blocks, assign parts of the line based on this and apply the
+# matching scheme for that part of the line of text
+
+def find_blocks(txt: str, schemes: list, search_regex, blocklist: list, names: list, search_str_pattern_type: dict,
+                line_no: int):
+    match = search_regex.search(txt)
+    next_txt = txt
+    curr_block_id = len(blocklist) - 1
+
+    last_unclosed_block_index = get_last_unclosed_block_index(blocklist)
+
+
+    # if last_unclosed_block_index != -1:
+    #     last_unclosed_block_names = parse(curr_txt, schemes_with_block_id_prop)
+    #     names += current_block_name
+
+    if match:
+        first_matching_scheme = next(
+            scheme for scheme in schemes if
+            scheme.get('block_start_pattern') == match.group() or scheme.get('block_end_pattern') == match.group())
+
+        curr_txt = txt[:match.start()]
+
+        # set the next text to search in from the remaining string in txt after the match
+        next_txt = txt[match.start() + len(match.group()):]
+
+        if search_str_pattern_type[match.group()] == 'start':
+            curr_block = {
+                'block_category': first_matching_scheme['block_category'],
+                'starting_line_no': line_no
+            }
+            parent_block_index = get_last_unclosed_block_index(blocklist)
+            if parent_block_index != -1:
+                curr_block['parent_id'] = parent_block_index
+
+            blocklist.append(curr_block)
+            curr_block_id += 1 # no, can't be sure of this...
+
+            # todo: apply starting property extraction patterns here - test prop extraction functions on their own
+            #  and then use them here (add to curr_block)
+
+        if search_str_pattern_type[match.group()] == 'end':
+            last_unclosed_block_index = get_last_unclosed_block_index(blocklist,
+                                                                      first_matching_scheme['block_category'])
+            if last_unclosed_block_index != -1:
+                blocklist[last_unclosed_block_index]['ending_line_no'] = line_no
+
+            # todo: apply ending property extraction patterns here (add to curr_block) - same functions as starting
+
+        # todo: write function to add props to scheme extraction patterns (top level?) to insert block id value
+        schemes_with_block_id_prop = add_block_id_prop_to_schemes(schemes, 0)
+
+        current_block_names = parse(curr_txt, schemes_with_block_id_prop)
+        names += current_block_names
+        find_blocks(next_txt, schemes, search_regex, blocklist, names, search_str_pattern_type, line_no)
+
+
+def get_last_unclosed_block_index(blocklist: list, category: str = None) -> int:
+    # loop through blocks in reverse to find last using range
+    for i in range(len(blocklist) - 1, -1, -1):
+        if blocklist[i].get('ending_line_no') is None and (blocklist[i]['block_category'] == category or not category):
+            return i
+    return -1
+
+
+def add_block_id_prop_to_schemes(schemes, block_id):
+
+    modified_schemes = []
+    block_id_prop = {
+        'property_name': 'block_id',
+        'value': block_id
+    }
+    for scheme in schemes:
+        scheme_with_block_id = {key: value[:] for key, value in scheme.items()}
+        if scheme_with_block_id.get('extraction_patterns'):
+            if scheme_with_block_id['extraction_patterns'][0].get('properties'):
+                scheme_with_block_id['extraction_patterns'][0]['properties'].append(block_id_prop)
+            else:
+                scheme_with_block_id['extraction_patterns'][0]['properties'] = [block_id_prop, ]
+            modified_schemes.append(scheme_with_block_id)
+
+    return modified_schemes
+
+
+def add_attr(attr: str, attr_value: str, list_of_dicts: list ):
+
+    if list_of_dicts:
+        pass
+
+
+def get_block_schemes(schemes: list) -> list:
+    block_schemes = []
+
+    for scheme in schemes:
+        block_start_pattern = scheme.get('block_start_pattern')
+        if block_start_pattern:
+            block_end_pattern = scheme.get('block_end_pattern')
+            if not block_end_pattern:
+                continue
+
+            block_schemes.append(scheme)
+
+    return block_schemes
+
+
+def check_block_schemes(line: str, text_to_parse: str, schemes: list) -> bool:
+    for scheme in schemes:
+        block_start_pattern = scheme.get('block_start_pattern')
+        if block_start_pattern:
+            is_meeting_match_conditions = check_match_conditions(line, scheme.get('match_conditions'))
+            if is_meeting_match_conditions:
+
+                if block_start_pattern in line:
+                    text_to_parse = line.split(block_start_pattern, 1)[1]
+                print('is_meeting_match_conditions')
+
+
 def apply_scheme(txt: str, scheme: dict) -> list:
-    is_meeting_match_conditions = check_match_conditions(txt, scheme['match_conditions'])
+    is_meeting_match_conditions = check_match_conditions(txt, scheme.get('match_conditions'))
 
     if is_meeting_match_conditions:
         return extract_names(txt, scheme['extraction_patterns'])
@@ -32,6 +187,8 @@ def apply_scheme(txt: str, scheme: dict) -> list:
 
 
 def check_match_conditions(txt: str, match_conditions: list) -> bool:
+    if match_conditions is None:
+        return True
     for match_condition in match_conditions:
         is_matched_condition = check_match_condition(txt, match_condition)
         if not is_matched_condition:

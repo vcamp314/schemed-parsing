@@ -30,9 +30,6 @@ def test_extraction_empty_text_returns_false(single_extraction_pattern):
     assert pyparse.extract_names(txt, single_extraction_pattern) == expected
 
 
-# startswith tests ######################
-
-
 def test_single_extraction_pattern_that_returns_single_item(single_extraction_pattern):
     txt = "import sampleImportName from './sample/path'"
     expected = [{'name': 'sampleImportName'}]
@@ -215,6 +212,61 @@ def test_single_extraction_pattern_that_has_prop_with_object_value():
                 {
                     'value': 'field_name',
                     'type': 'str'
+                }
+            ]
+        },
+    ]
+    assert pyparse.extract_names(txt, extraction_pattern_with_props) == expected
+
+
+def test_single_extraction_pattern_that_has_prop_with_preset_value():
+    txt = "def set_props(props: dict, prop_props: dict, matches_found: list, field_name: str):"
+    extraction_pattern_with_props = [
+        {
+            'query': r'def (.*)\(',
+            'properties': [
+                {
+                    'property_name': 'args',
+                    'extraction_patterns': [
+                        {
+                            'query': r'\((.*)\)',
+                        },
+                        {
+                            'query': r'(.*?)(?:,|$)',
+                        },
+                        {
+                            'query': r'(\w+):',
+                            'properties': [
+                                {
+                                    'property_name': 'type',
+                                    'value': 'function_input_param',
+                                },
+                            ],
+                        }
+                    ]
+                },
+            ],
+        },
+    ]
+    expected = [
+        {
+            'name': 'set_props',
+            'args': [
+                {
+                    'value': 'props',
+                    'type': 'function_input_param'
+                },
+                {
+                    'value': 'prop_props',
+                    'type': 'function_input_param'
+                },
+                {
+                    'value': 'matches_found',
+                    'type': 'function_input_param'
+                },
+                {
+                    'value': 'field_name',
+                    'type': 'function_input_param'
                 }
             ]
         },
