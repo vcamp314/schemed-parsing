@@ -144,15 +144,25 @@ def test_find_flat_blocks_and_their_params():
     assert result_names == expected_names
 
 
-def test_find_flat_blocks_with_props_and_params():
-    txt = "import { sampleImportName1, sampleImportName2 } from './sample/path'; import { sampleImportName3, " \
-          "sampleImportName4 } from './sample/path'; "
+def test_find_flat_blocks_with_ending_props_and_params():
+    txt = "import { sampleImportName1, sampleImportName2 } from './sample/path1'; import { sampleImportName3, " \
+          "sampleImportName4 } from './sample/path2'; "
     block_schemes = [
         {
-            'block_start_pattern': {
-                'query': '{'
+            'block_start_pattern': {'query': '{'},
+            'block_end_pattern': {
+                'query': '}',
+                'properties': [
+                    {
+                        'property_name': 'from_path',
+                        'extraction_patterns': [
+                            {
+                                'query': r'from\s*?(?:"|\')(.*)(?:"|\')'
+                            }
+                        ]
+                    }
+                ]
             },
-            'block_end_pattern': {'query': '}'},
             'block_category': 'test_cat',
             'extraction_patterns': [
                 {
@@ -166,11 +176,13 @@ def test_find_flat_blocks_with_props_and_params():
             'block_category': 'test_cat',
             'starting_line_no': 1,
             'ending_line_no': 1,
+            'from_path': './sample/path1',
         },
         {
             'block_category': 'test_cat',
             'starting_line_no': 1,
             'ending_line_no': 1,
+            'from_path': './sample/path2',
         }
     ]
     expected_names = [

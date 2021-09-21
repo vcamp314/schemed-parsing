@@ -64,11 +64,11 @@ def process_multiple_block_matches(txt: str, schemes: list, blocklist: list, nam
 # matching scheme for that part of the line of text
 
 def find_blocks(txt: str, schemes: list, search_regex, blocklist: list, names: list, search_str_pattern_type: dict,
-                line_no: int):
+                line_no: int, ending_prop_schemes: list = None, ending_block_index: int = -1):
     match = search_regex.search(txt)
-    next_txt = txt
-
     last_unclosed_block_index = get_last_unclosed_block_index(blocklist)
+    next_ending_prop_schemes = None
+    next_ending_block_index = -1
 
     if match:
         first_matching_scheme = next(
@@ -79,6 +79,10 @@ def find_blocks(txt: str, schemes: list, search_regex, blocklist: list, names: l
         curr_txt = txt[:match.start()]
         # set all name matches for last unclosed block for text up until new block pattern match
         parse_block_names(curr_txt, last_unclosed_block_index, schemes, names)
+
+        if ending_block_index != -1:
+            prev_ending_props = extract_properties(curr_txt, ending_prop_schemes)
+            blocklist[ending_block_index] = {**blocklist[ending_block_index], **prev_ending_props}
 
         # set the next text to search in from the remaining string in txt after the match
         next_txt = txt[match.start() + len(match.group()):]
@@ -103,11 +107,15 @@ def find_blocks(txt: str, schemes: list, search_regex, blocklist: list, names: l
             if last_unclosed_matched_block_index != -1:
                 blocklist[last_unclosed_block_index]['ending_line_no'] = line_no
 
-            # todo: apply ending property extraction patterns here (add to curr_block) - same functions as starting
+            next_ending_prop_schemes = first_matching_scheme['block_end_pattern'].get('properties')
+            next_ending_block_index = last_unclosed_matched_block_index
 
-        find_blocks(next_txt, schemes, search_regex, blocklist, names, search_str_pattern_type, line_no)
+        find_blocks(next_txt, schemes, search_regex, blocklist, names, search_str_pattern_type, line_no, next_ending_prop_schemes, next_ending_block_index)
     else:
         parse_block_names(txt, last_unclosed_block_index, schemes, names)
+        if ending_block_index != -1:
+            prev_ending_props = extract_properties(txt, ending_prop_schemes)
+            blocklist[ending_block_index] = {**blocklist[ending_block_index], **prev_ending_props}
 
 
 def get_last_unclosed_block_index(blocklist: list, category: str = None) -> int:
