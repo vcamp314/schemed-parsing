@@ -7,8 +7,6 @@ from .context import pyparse
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 os.chdir(CURRENT_DIR)
 
-# todo: add test for block with params
-
 
 def test_block_extraction_empty_patterns_returns_empty_list():
     txt_gen = (txt for txt in ["import { sampleImportName1, sampleImportName2 } from './sample/path'"])
@@ -32,8 +30,8 @@ def test_find_flat_blocks():
     txt = 'if(isTest == true){ doSomething() }; if(isSpecialTest == true) { doSomethingElse() };'
     block_schemes = [
         {
-            'block_start_pattern': '{',
-            'block_end_pattern': '}',
+            'block_start_pattern': {'query': '{'},
+            'block_end_pattern': {'query': '}'},
             'block_category': 'test_cat',
         }
     ]
@@ -63,8 +61,8 @@ def test_find_nested_blocks():
     txt = 'if(isTest == true){ if(isSpecialTest == true;) { doSomethingElse(); } }'
     block_schemes = [
         {
-            'block_start_pattern': '{',
-            'block_end_pattern': '}',
+            'block_start_pattern': {'query': '{'},
+            'block_end_pattern': {'query': '}'},
             'block_category': 'test_cat',
         }
     ]
@@ -96,8 +94,65 @@ def test_find_flat_blocks_and_their_params():
           "sampleImportName4 } from './sample/path'; "
     block_schemes = [
         {
-            'block_start_pattern': '{',
-            'block_end_pattern': '}',
+            'block_start_pattern': {'query': '{'},
+            'block_end_pattern': {'query': '}'},
+            'block_category': 'test_cat',
+            'extraction_patterns': [
+                {
+                    'query': r'(\w+)'
+                }
+            ]
+        }
+    ]
+    expected_blocks = [
+        {
+            'block_category': 'test_cat',
+            'starting_line_no': 1,
+            'ending_line_no': 1,
+        },
+        {
+            'block_category': 'test_cat',
+            'starting_line_no': 1,
+            'ending_line_no': 1,
+        }
+    ]
+    expected_names = [
+        {
+            'name': 'sampleImportName1',
+            'block_id': 0,
+        },
+        {
+            'name': 'sampleImportName2',
+            'block_id': 0,
+        },
+        {
+            'name': 'sampleImportName3',
+            'block_id': 1,
+        },
+        {
+            'name': 'sampleImportName4',
+            'block_id': 1,
+        },
+    ]
+
+    result_blocks = []
+    result_names = []
+    line_no = 1
+    pyparse.process_multiple_block_matches(txt, block_schemes, result_blocks, result_names, line_no)
+
+    assert result_blocks == expected_blocks
+    assert result_names == expected_names
+
+
+def test_find_flat_blocks_with_props_and_params():
+    txt = "import { sampleImportName1, sampleImportName2 } from './sample/path'; import { sampleImportName3, " \
+          "sampleImportName4 } from './sample/path'; "
+    block_schemes = [
+        {
+            'block_start_pattern': {
+                'query': '{'
+            },
+            'block_end_pattern': {'query': '}'},
             'block_category': 'test_cat',
             'extraction_patterns': [
                 {

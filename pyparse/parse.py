@@ -46,12 +46,12 @@ def parse_all_lines(line_gen: typing.Generator, schemes: list) -> list:
 def process_multiple_block_matches(txt: str, schemes: list, blocklist: list, names: list, line_no: int):
     block_schemes = get_block_schemes(schemes)
 
-    search_str_pattern_type = {scheme['block_start_pattern']: 'start' for scheme in block_schemes}
+    search_str_pattern_type = {scheme['block_start_pattern']['query']: 'start' for scheme in block_schemes}
     search_str_pattern_type = {**search_str_pattern_type,
-                               **{scheme['block_end_pattern']: 'end' for scheme in block_schemes}}
+                               **{scheme['block_end_pattern']['query']: 'end' for scheme in block_schemes}}
 
     search_str = '|'.join(
-        [scheme['block_start_pattern'] + '|' + scheme['block_end_pattern'] for scheme in
+        [scheme['block_start_pattern']['query'] + '|' + scheme['block_end_pattern']['query'] for scheme in
          block_schemes])
     search_regex = re.compile(search_str)
 
@@ -73,7 +73,8 @@ def find_blocks(txt: str, schemes: list, search_regex, blocklist: list, names: l
     if match:
         first_matching_scheme = next(
             scheme for scheme in schemes if
-            scheme.get('block_start_pattern') == match.group() or scheme.get('block_end_pattern') == match.group())
+            get_block_pattern_query(scheme, 'block_start_pattern') == match.group() or get_block_pattern_query(scheme,
+                                                                                                               'block_end_pattern') == match.group())
 
         curr_txt = txt[:match.start()]
         # set all name matches for last unclosed block for text up until new block pattern match
@@ -98,7 +99,7 @@ def find_blocks(txt: str, schemes: list, search_regex, blocklist: list, names: l
 
         if search_str_pattern_type[match.group()] == 'end':
             last_unclosed_matched_block_index = get_last_unclosed_block_index(blocklist,
-                                                                      first_matching_scheme['block_category'])
+                                                                              first_matching_scheme['block_category'])
             if last_unclosed_matched_block_index != -1:
                 blocklist[last_unclosed_block_index]['ending_line_no'] = line_no
 
@@ -118,14 +119,13 @@ def get_last_unclosed_block_index(blocklist: list, category: str = None) -> int:
 
 
 def add_block_id_prop_to_schemes(schemes, block_id):
-
     modified_schemes = []
     block_id_prop = {
         'property_name': 'block_id',
         'value': block_id
     }
     for scheme in schemes:
-        scheme_with_block_id = {key: value[:] for key, value in scheme.items()}
+        scheme_with_block_id = {**scheme}
         if scheme_with_block_id.get('extraction_patterns'):
             if scheme_with_block_id['extraction_patterns'][0].get('properties'):
                 scheme_with_block_id['extraction_patterns'][0]['properties'].append(block_id_prop)
@@ -142,6 +142,13 @@ def parse_block_names(txt: str, last_unclosed_block_index: int, schemes: list, n
 
         last_unclosed_block_names = parse(txt, schemes_with_block_id_prop)
         names += last_unclosed_block_names
+
+
+def get_block_pattern_query(scheme: dict, pattern_type: str):
+    pattern = scheme.get(pattern_type)
+    if pattern:
+        return pattern['query']
+    return None
 
 
 def get_block_schemes(schemes: list) -> list:
