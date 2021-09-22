@@ -211,3 +211,72 @@ def test_find_flat_blocks_with_ending_props_and_params():
 
     assert result_blocks == expected_blocks
     assert result_names == expected_names
+
+
+def test_find_flat_blocks_with_starting_props_and_params():
+    txt = "; import { sampleImportName1, sampleImportName2 } from './sample/path1'; import { sampleImportName3, " \
+          "sampleImportName4 } from './sample/path2'; "
+    block_schemes = [
+        {
+            'block_start_pattern': {
+                'query': '{',
+                'properties': [
+                    {
+                        'property_name': 'block_type',
+                        'extraction_patterns': [
+                            {
+                                'query': r'; (\w+)'
+                            }
+                        ]
+                    }
+                ]
+            },
+            'block_end_pattern': {'query': '}'},
+            'block_category': 'test_cat',
+            'extraction_patterns': [
+                {
+                    'query': r'(\w+)'
+                }
+            ]
+        }
+    ]
+    expected_blocks = [
+        {
+            'block_category': 'test_cat',
+            'starting_line_no': 1,
+            'ending_line_no': 1,
+            'block_type': 'import',
+        },
+        {
+            'block_category': 'test_cat',
+            'starting_line_no': 1,
+            'ending_line_no': 1,
+            'block_type': 'import',
+        }
+    ]
+    expected_names = [
+        {
+            'name': 'sampleImportName1',
+            'block_id': 0,
+        },
+        {
+            'name': 'sampleImportName2',
+            'block_id': 0,
+        },
+        {
+            'name': 'sampleImportName3',
+            'block_id': 1,
+        },
+        {
+            'name': 'sampleImportName4',
+            'block_id': 1,
+        },
+    ]
+
+    result_blocks = []
+    result_names = []
+    line_no = 1
+    pyparse.process_multiple_block_matches(txt, block_schemes, result_blocks, result_names, line_no)
+
+    assert result_blocks == expected_blocks
+    assert result_names == expected_names

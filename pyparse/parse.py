@@ -88,9 +88,11 @@ def find_blocks(txt: str, schemes: list, search_regex, blocklist: list, names: l
         next_txt = txt[match.start() + len(match.group()):]
 
         if search_str_pattern_type[match.group()] == 'start':
+            curr_starting_props = extract_properties(curr_txt, first_matching_scheme['block_start_pattern'].get('properties'))
             curr_block = {
                 'block_category': first_matching_scheme['block_category'],
-                'starting_line_no': line_no
+                'starting_line_no': line_no,
+                **curr_starting_props
             }
             parent_block_index = last_unclosed_block_index
             if parent_block_index != -1:
