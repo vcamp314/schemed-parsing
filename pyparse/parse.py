@@ -27,35 +27,34 @@ def parse(txt: str, schemes: list) -> list:
     return all_extracted_names
 
 
-def parse_all_lines(line_gen: typing.Generator, schemes: list) -> list:
-    text_to_parse = ''
-    is_in_block = False
-    block_list = []
+def parse_all_lines(line_gen: typing.Generator, schemes: list) -> {list, list}:
+    blocklist = []
+    names = []
+    line_no = 0
 
     for line in line_gen:
-        for scheme in schemes:
-            block_schemes = scheme.get('block_schemes')
-            if block_schemes:
-                check_block_schemes(line, text_to_parse, block_schemes)
+        line_no += 1
+        apply_schemes_with_blocks(line, schemes, blocklist, names, line_no)
 
-    return block_list
+    return blocklist, names
 
 
 # todo: add logic in function that calls this function to filter schemes based on match_conditions before passing
 #  schemes
-def process_multiple_block_matches(txt: str, schemes: list, blocklist: list, names: list, line_no: int):
+def apply_schemes_with_blocks(txt: str, schemes: list, blocklist: list, names: list, line_no: int):
     block_schemes = get_block_schemes(schemes)
 
-    search_str_pattern_type = {scheme['block_start_pattern']['query']: 'start' for scheme in block_schemes}
-    search_str_pattern_type = {**search_str_pattern_type,
-                               **{scheme['block_end_pattern']['query']: 'end' for scheme in block_schemes}}
+    if schemes:
+        search_str_pattern_type = {scheme['block_start_pattern']['query']: 'start' for scheme in block_schemes}
+        search_str_pattern_type = {**search_str_pattern_type,
+                                   **{scheme['block_end_pattern']['query']: 'end' for scheme in block_schemes}}
 
-    search_str = '|'.join(
-        [scheme['block_start_pattern']['query'] + '|' + scheme['block_end_pattern']['query'] for scheme in
-         block_schemes])
-    search_regex = re.compile(search_str)
+        search_str = '|'.join(
+            [scheme['block_start_pattern']['query'] + '|' + scheme['block_end_pattern']['query'] for scheme in
+             block_schemes])
+        search_regex = re.compile(search_str)
 
-    find_blocks(txt, schemes, search_regex, blocklist, names, search_str_pattern_type, line_no)
+        find_blocks(txt, schemes, search_regex, blocklist, names, search_str_pattern_type, line_no)
 
 
 # todo: document this function's biz logic
@@ -174,18 +173,6 @@ def get_block_schemes(schemes: list) -> list:
             block_schemes.append(scheme)
 
     return block_schemes
-
-
-def check_block_schemes(line: str, text_to_parse: str, schemes: list) -> bool:
-    for scheme in schemes:
-        block_start_pattern = scheme.get('block_start_pattern')
-        if block_start_pattern:
-            is_meeting_match_conditions = check_match_conditions(line, scheme.get('match_conditions'))
-            if is_meeting_match_conditions:
-
-                if block_start_pattern in line:
-                    text_to_parse = line.split(block_start_pattern, 1)[1]
-                print('is_meeting_match_conditions')
 
 
 def apply_scheme(txt: str, scheme: dict) -> list:
