@@ -5,9 +5,10 @@ This is a module used for config driven parsing.
 import re
 import typing
 
-
-# todo: rename module to schemed-parsing todo: create error handling layer
-#  todo: evaluate the possibility of creating blocklist class to make functions
+# todo: fix up block-parsing-example.rst documentation to match implementation
+# todo: rename module to schemed-parsing
+# todo: create error handling layer
+# todo: evaluate the possibility of creating blocklist class to make functions
 #   like get_last_opened_block_that_ends_with more readable
 
 
@@ -98,9 +99,6 @@ def find_blocks(txt: str, schemes: list, search_regex, blocklist: list, names: l
                 curr_block['parent_id'] = parent_block_index
 
             blocklist.append(curr_block)
-
-            # todo: apply starting property extraction patterns here - test prop extraction functions on their own
-            #  and then use them here (add to curr_block)
 
         if search_str_pattern_type[match.group()] == 'end':
             last_unclosed_matched_block_index = get_last_unclosed_block_index(blocklist,

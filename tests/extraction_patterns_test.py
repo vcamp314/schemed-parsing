@@ -8,10 +8,6 @@ CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 os.chdir(CURRENT_DIR)
 
 
-# todo: create extraction patterns properties upstream test
-# todo: create extraction patterns properties downstream test
-
-
 def test_extraction_empty_patterns_returns_empty_dict():
     txt = "import { sampleImportName1, sampleImportName2 } from './sample/path'"
     extraction_patterns = []

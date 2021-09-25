@@ -1,1 +1,5 @@
-if(isTest == true){ doSomething() }; if(isSpecialTest == true) { doSomethingElse() };
+import {
+    longNameA,
+    longNameB,
+    longNameC,
+} from '/some/pretty/long/path/'

@@ -2,7 +2,7 @@
     "schemes": [
         {
             "block_start_pattern": {
-                "query": "{"
+                "query": "import {"
             },
             "block_end_pattern": {
                 "query": "}",
@@ -17,16 +17,8 @@
                     }
                 ]
             },
-            "match_conditions": [
-                {
-                    "query": "import",
-                    "type": "startswith"
-                }
-            ],
+            "block_category": "block_import",
             "extraction_patterns": [
-                {
-                    "query": "{(.*)}"
-                },
                 {
                     "query": "(\\w+)"
                 }

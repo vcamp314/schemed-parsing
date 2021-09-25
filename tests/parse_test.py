@@ -65,18 +65,30 @@ def test_js_import_sample_returns_import_names_dict(load_schemes):
 
 def test_js_import_block_sample_returns_import_names_dict(load_block_schemes, load_block_text):
     txt = load_block_text
-    expected = [
+
+    expected_blocks = [
+        {
+            'block_category': 'block_import',
+            "from_path": "/some/pretty/long/path/",
+            'starting_line_no': 1,
+            'ending_line_no': 5,
+        },
+    ]
+    expected_names = [
         {
             "name": "longNameA",
-            "from_path": "./sample/path"
+            'block_id': 0,
         },
         {
             "name": "longNameB",
-            "from_path": "./sample/path"
+            'block_id': 0,
         },
         {
             "name": "longNameC",
-            "from_path": "./sample/path"
+            'block_id': 0,
         }
     ]
-    assert pyparse.parse_all_lines(txt, load_block_schemes) == expected
+    result_blocks, result_names = pyparse.parse_all_lines(txt, load_block_schemes)
+
+    assert result_blocks == expected_blocks
+    assert result_names == expected_names
