@@ -1,7 +1,7 @@
 import os
 import json
 import pytest
-from .context import pyparse
+from .context import schemedparsing
 
 # the below two lines are for pip installing with test option and when
 # the tests will open files:
@@ -24,7 +24,7 @@ def test_empty_schemes_returns_empty_list():
     schemes = []
     txt = "import { sampleImportName1, sampleImportName2 } from './sample/path'"
     expected = []
-    assert pyparse.parse(txt, schemes) == expected
+    assert schemedparsing.parse(txt, schemes) == expected
 
 
 @pytest.fixture
@@ -45,7 +45,7 @@ def load_block_text():
 def test_empty_str_returns_empty_list(load_schemes):
     txt = ''
     expected = []
-    assert pyparse.parse(txt, load_schemes) == expected
+    assert schemedparsing.parse(txt, load_schemes) == expected
 
 
 def test_js_import_sample_returns_import_names_dict(load_schemes):
@@ -60,7 +60,7 @@ def test_js_import_sample_returns_import_names_dict(load_schemes):
             "from_path": "./sample/path"
         }
     ]
-    assert pyparse.parse(txt, load_schemes) == expected
+    assert schemedparsing.parse(txt, load_schemes) == expected
 
 
 def test_js_import_block_sample_returns_import_names_dict(load_block_schemes, load_block_text):
@@ -88,7 +88,7 @@ def test_js_import_block_sample_returns_import_names_dict(load_block_schemes, lo
             'block_id': 0,
         }
     ]
-    result_blocks, result_names = pyparse.parse_all_lines(txt, load_block_schemes)
+    result_blocks, result_names = schemedparsing.parse_all_lines(txt, load_block_schemes)
 
     assert result_blocks == expected_blocks
     assert result_names == expected_names

@@ -5,11 +5,9 @@ This is a module used for config driven parsing.
 import re
 import typing
 
-# todo: fix up block-parsing-example.rst documentation to match implementation
-# todo: rename module to schemed-parsing
-# todo: create error handling layer
 # todo: evaluate the possibility of creating blocklist class to make functions
 #   like get_last_opened_block_that_ends_with more readable
+# todo: create error handling layer
 
 
 def parse(txt: str, schemes: list) -> list:

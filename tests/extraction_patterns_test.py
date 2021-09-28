@@ -1,6 +1,6 @@
 import os
 import pytest
-from .context import pyparse
+from .context import schemedparsing
 
 # the below two lines are for pip installing with test option and when
 # the tests will open files:
@@ -12,7 +12,7 @@ def test_extraction_empty_patterns_returns_empty_dict():
     txt = "import { sampleImportName1, sampleImportName2 } from './sample/path'"
     extraction_patterns = []
     expected = []
-    assert pyparse.extract_names(txt, extraction_patterns) == expected
+    assert schemedparsing.extract_names(txt, extraction_patterns) == expected
 
 
 @pytest.fixture
@@ -23,13 +23,13 @@ def single_extraction_pattern():
 def test_extraction_empty_text_returns_false(single_extraction_pattern):
     txt = ''
     expected = []
-    assert pyparse.extract_names(txt, single_extraction_pattern) == expected
+    assert schemedparsing.extract_names(txt, single_extraction_pattern) == expected
 
 
 def test_single_extraction_pattern_that_returns_single_item(single_extraction_pattern):
     txt = "import sampleImportName from './sample/path'"
     expected = [{'name': 'sampleImportName'}]
-    assert pyparse.extract_names(txt, single_extraction_pattern) == expected
+    assert schemedparsing.extract_names(txt, single_extraction_pattern) == expected
 
 
 def test_multiple_extraction_pattern_that_returns_multiple_items():
@@ -39,7 +39,7 @@ def test_multiple_extraction_pattern_that_returns_multiple_items():
         {'name': 'sampleImportName1'},
         {'name': 'sampleImportName2'}
     ]
-    assert pyparse.extract_names(txt, multiple_extraction_pattern) == expected
+    assert schemedparsing.extract_names(txt, multiple_extraction_pattern) == expected
 
 
 def test_single_extraction_pattern_with_property():
@@ -60,7 +60,7 @@ def test_single_extraction_pattern_with_property():
         },
     ]
     expected = [{'name': 'sampleImportName', 'from_path': './sample/path'}]
-    assert pyparse.extract_names(txt, extraction_pattern_with_props) == expected
+    assert schemedparsing.extract_names(txt, extraction_pattern_with_props) == expected
 
 
 def test_single_extraction_pattern_with_multiple_properties():
@@ -97,7 +97,7 @@ def test_single_extraction_pattern_with_multiple_properties():
         },
     ]
     expected = [{'name': 'sampleParam', 'required': 'false', 'type': 'String', 'default': "'default'"}]
-    assert pyparse.extract_names(txt, extraction_pattern_with_props) == expected
+    assert schemedparsing.extract_names(txt, extraction_pattern_with_props) == expected
 
 
 def test_single_extraction_pattern_with_deep_properties():
@@ -121,7 +121,7 @@ def test_single_extraction_pattern_with_deep_properties():
         },
     ]
     expected = [{'name': 'sampleParam', 'required': 'false'}]
-    assert pyparse.extract_names(txt, extraction_pattern_with_props) == expected
+    assert schemedparsing.extract_names(txt, extraction_pattern_with_props) == expected
 
 
 def test_single_extraction_pattern_with_multiple_matches_and_props():
@@ -153,7 +153,7 @@ def test_single_extraction_pattern_with_multiple_matches_and_props():
         {'name': 'matches_found', 'type': 'list'},
         {'name': 'field_name', 'type': 'str'},
     ]
-    assert pyparse.extract_names(txt, extraction_pattern_with_props) == expected
+    assert schemedparsing.extract_names(txt, extraction_pattern_with_props) == expected
 
 
 def test_single_extraction_pattern_that_has_prop_with_object_value():
@@ -212,7 +212,7 @@ def test_single_extraction_pattern_that_has_prop_with_object_value():
             ]
         },
     ]
-    assert pyparse.extract_names(txt, extraction_pattern_with_props) == expected
+    assert schemedparsing.extract_names(txt, extraction_pattern_with_props) == expected
 
 
 def test_single_extraction_pattern_that_has_prop_with_preset_value():
@@ -267,4 +267,4 @@ def test_single_extraction_pattern_that_has_prop_with_preset_value():
             ]
         },
     ]
-    assert pyparse.extract_names(txt, extraction_pattern_with_props) == expected
+    assert schemedparsing.extract_names(txt, extraction_pattern_with_props) == expected

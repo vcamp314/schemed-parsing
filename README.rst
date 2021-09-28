@@ -1,4 +1,4 @@
-PyParse Package
+Schemed Parsing Package
 =================================
 This is a template package structure for future packages.
 Replace this text with your project's description.
@@ -19,8 +19,8 @@ How to use (template example, to be replaced with actual project's example)
 
 example usage::
 
-    import pyparse
-    pyparse.parse('sample text', parsing_schemes)
+    import schemedparsing
+    schemedparsing.parse('sample text', parsing_schemes)
 
 
 For the structure of the above :code:`parsing_scheme` parameter, please see the parsing scheme example document in the docs folder <./docs/sample-parsing-scheme-example.rst>`
