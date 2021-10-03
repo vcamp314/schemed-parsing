@@ -12,9 +12,9 @@ def test_block_extraction_empty_patterns_returns_empty_list():
     txt_gen = (txt for txt in ["import { sampleImportName1, sampleImportName2 } from './sample/path'"])
     schemes = []
     expected = []
-    result_blocklist, result_names = schemedparsing.parse_all_lines(txt_gen, schemes)
-    assert result_blocklist == expected
+    result_names, result_blocklist = schemedparsing.parse(txt_gen, schemes)
     assert result_names == expected
+    assert result_blocklist == expected
 
 
 @pytest.fixture
@@ -25,10 +25,9 @@ def single_extraction_pattern():
 def test_extraction_empty_text_returns_empty_list(single_extraction_pattern):
     txt_gen = (txt for txt in [])
     expected = []
-    result_blocklist, result_names = schemedparsing.parse_all_lines(txt_gen, single_extraction_pattern)
-    assert result_blocklist == expected
+    result_names, result_blocklist = schemedparsing.parse(txt_gen, single_extraction_pattern)
     assert result_names == expected
-
+    assert result_blocklist == expected
 
 def test_find_flat_blocks():
     txt = 'if(isTest == true){ doSomething() }; if(isSpecialTest == true) { doSomethingElse() };'
@@ -55,7 +54,7 @@ def test_find_flat_blocks():
     result = []
     names = []
     line_no = 1
-    schemedparsing.apply_schemes_with_blocks(txt, block_schemes, result, names, line_no)
+    schemedparsing.parse_line(txt, block_schemes, result, names, line_no)
 
     assert result == expected
     assert names == []
@@ -87,7 +86,7 @@ def test_find_nested_blocks():
     result = []
     names = []
     line_no = 1
-    schemedparsing.apply_schemes_with_blocks(txt, block_schemes, result, names, line_no)
+    schemedparsing.parse_line(txt, block_schemes, result, names, line_no)
 
     assert result == expected
     assert names == []
@@ -142,7 +141,7 @@ def test_find_flat_blocks_and_their_params():
     result_blocks = []
     result_names = []
     line_no = 1
-    schemedparsing.apply_schemes_with_blocks(txt, block_schemes, result_blocks, result_names, line_no)
+    schemedparsing.parse_line(txt, block_schemes, result_blocks, result_names, line_no)
 
     assert result_blocks == expected_blocks
     assert result_names == expected_names
@@ -211,7 +210,7 @@ def test_find_flat_blocks_with_ending_props_and_params():
     result_blocks = []
     result_names = []
     line_no = 1
-    schemedparsing.apply_schemes_with_blocks(txt, block_schemes, result_blocks, result_names, line_no)
+    schemedparsing.parse_line(txt, block_schemes, result_blocks, result_names, line_no)
 
     assert result_blocks == expected_blocks
     assert result_names == expected_names
@@ -280,7 +279,7 @@ def test_find_flat_blocks_with_starting_props_and_params():
     result_blocks = []
     result_names = []
     line_no = 1
-    schemedparsing.apply_schemes_with_blocks(txt, block_schemes, result_blocks, result_names, line_no)
+    schemedparsing.parse_line(txt, block_schemes, result_blocks, result_names, line_no)
 
     assert result_blocks == expected_blocks
     assert result_names == expected_names

@@ -15,7 +15,13 @@ Installing package with dependencies (update accordingly for actual github link/
 ++++++
 Usage
 ++++++
-How to use (template example, to be replaced with actual project's example)
+How to use this library.
+The Schemed Parsing library has two main methods of parsing:
+1. schemedparsing.parse
+2. schemedparsing.parse_all_lines
+
+Simple parsing
+***************
 
 example usage::
 
@@ -24,6 +30,9 @@ example usage::
 
 
 For the structure of the above :code:`parsing_scheme` parameter, please see the parsing scheme example document in the docs folder <./docs/sample-parsing-scheme-example.rst>`
+
+Block parsing
+***************
 
 ++++++++
 Testing

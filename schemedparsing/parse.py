@@ -5,45 +5,47 @@ This is a module used for config driven parsing.
 import re
 import typing
 
+# todo: add block parsing without generator, and generator parsing for non-block parsing
 # todo: evaluate the possibility of creating blocklist class to make functions
 #   like get_last_opened_block_that_ends_with more readable
 # todo: create error handling layer
 
 
-def parse(txt: str, schemes: list) -> list:
-    """Parse text based on provided list of parsing schemes"
+def parse(txt: typing.Union[str, typing.Generator], schemes: list) -> {list, list}:
+    """Parse text based on provided list of parsing schemes
+    txt can be a string or a generator of strings for when dealing with text inside big files.
     >>> parse('some text', [])
     []
 
-    :return: dict
+    :return: tuple pf lists, first element of tuple is the list of names parsed from the text, second element is a
+    list of blocks found, or an empty list if blocks are not applicable.
     """
-    all_extracted_names = []
-
-    for scheme in schemes:
-        current_scheme_names = apply_scheme(txt, scheme)
-        all_extracted_names += current_scheme_names
-
-    return all_extracted_names
-
-
-def parse_all_lines(line_gen: typing.Generator, schemes: list) -> {list, list}:
-    blocklist = []
     names = []
+    blocklist = []
+
+    if isinstance(txt, typing.Generator):
+        parse_all_lines(txt, schemes, names, blocklist)
+
+    else:
+        parse_line(txt, schemes, blocklist, names)
+
+    return names, blocklist
+
+
+def parse_all_lines(line_gen: typing.Generator, schemes: list, names: list, blocklist: list) -> {list, list}:
     line_no = 0
 
     for line in line_gen:
         line_no += 1
-        apply_schemes_with_blocks(line, schemes, blocklist, names, line_no)
-
-    return blocklist, names
+        parse_line(line, schemes, blocklist, names, line_no)
 
 
 # todo: add logic in function that calls this function to filter schemes based on match_conditions before passing
 #  schemes
-def apply_schemes_with_blocks(txt: str, schemes: list, blocklist: list, names: list, line_no: int):
+def parse_line(txt: str, schemes: list, blocklist: list, names: list, line_no: int = None):
     block_schemes = get_block_schemes(schemes)
 
-    if schemes:
+    if block_schemes:
         search_str_pattern_type = {scheme['block_start_pattern']['query']: 'start' for scheme in block_schemes}
         search_str_pattern_type = {**search_str_pattern_type,
                                    **{scheme['block_end_pattern']['query']: 'end' for scheme in block_schemes}}
@@ -54,6 +56,22 @@ def apply_schemes_with_blocks(txt: str, schemes: list, blocklist: list, names: l
         search_regex = re.compile(search_str)
 
         find_blocks(txt, schemes, search_regex, blocklist, names, search_str_pattern_type, line_no)
+        return
+
+    new_names = apply_schemes(txt, schemes)
+    names += new_names
+    return
+
+
+def apply_schemes(txt: str, schemes: list) -> list:
+
+    all_extracted_names = []
+
+    for scheme in schemes:
+        current_scheme_names = apply_scheme(txt, scheme)
+        all_extracted_names += current_scheme_names
+
+    return all_extracted_names
 
 
 # todo: document this function's biz logic
@@ -145,7 +163,7 @@ def parse_block_names(txt: str, last_unclosed_block_index: int, schemes: list, n
     if last_unclosed_block_index != -1:
         schemes_with_block_id_prop = add_block_id_prop_to_schemes(schemes, last_unclosed_block_index)
 
-        last_unclosed_block_names = parse(txt, schemes_with_block_id_prop)
+        last_unclosed_block_names = apply_schemes(txt, schemes_with_block_id_prop)
         names += last_unclosed_block_names
 
 

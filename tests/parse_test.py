@@ -23,8 +23,13 @@ def load_json(file_path: str):
 def test_empty_schemes_returns_empty_list():
     schemes = []
     txt = "import { sampleImportName1, sampleImportName2 } from './sample/path'"
-    expected = []
-    assert schemedparsing.parse(txt, schemes) == expected
+    expected_names = []
+    expected_blocks = []
+
+    result_names, result_blocks = schemedparsing.parse(txt, schemes)
+
+    assert result_names == expected_names
+    assert result_blocks == expected_blocks
 
 
 @pytest.fixture
@@ -45,12 +50,18 @@ def load_block_text():
 def test_empty_str_returns_empty_list(load_schemes):
     txt = ''
     expected = []
-    assert schemedparsing.parse(txt, load_schemes) == expected
+    expected_names = []
+    expected_blocks = []
+
+    result_names, result_blocks = schemedparsing.parse(txt, load_schemes)
+
+    assert result_names == expected_names
+    assert result_blocks == expected_blocks
 
 
 def test_js_import_sample_returns_import_names_dict(load_schemes):
     txt = "import { sampleImportName1, sampleImportName2 } from './sample/path'"
-    expected = [
+    expected_names = [
         {
             "name": "sampleImportName1",
             "from_path": "./sample/path"
@@ -60,20 +71,17 @@ def test_js_import_sample_returns_import_names_dict(load_schemes):
             "from_path": "./sample/path"
         }
     ]
-    assert schemedparsing.parse(txt, load_schemes) == expected
+    expected_blocks = []
+
+    result_names, result_blocks = schemedparsing.parse(txt, load_schemes)
+
+    assert result_names == expected_names
+    assert result_blocks == expected_blocks
 
 
 def test_js_import_block_sample_returns_import_names_dict(load_block_schemes, load_block_text):
     txt = load_block_text
 
-    expected_blocks = [
-        {
-            'block_category': 'block_import',
-            "from_path": "/some/pretty/long/path/",
-            'starting_line_no': 1,
-            'ending_line_no': 5,
-        },
-    ]
     expected_names = [
         {
             "name": "longNameA",
@@ -88,7 +96,18 @@ def test_js_import_block_sample_returns_import_names_dict(load_block_schemes, lo
             'block_id': 0,
         }
     ]
-    result_blocks, result_names = schemedparsing.parse_all_lines(txt, load_block_schemes)
 
-    assert result_blocks == expected_blocks
+    expected_blocks = [
+        {
+            'block_category': 'block_import',
+            "from_path": "/some/pretty/long/path/",
+            'starting_line_no': 1,
+            'ending_line_no': 5,
+        },
+    ]
+
+    result_names, result_blocks = schemedparsing.parse(txt, load_block_schemes)
+
     assert result_names == expected_names
+    assert result_blocks == expected_blocks
+
