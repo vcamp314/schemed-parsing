@@ -5,7 +5,6 @@ This is a module used for config driven parsing.
 import re
 import typing
 
-# todo: add block parsing without generator, and generator parsing for non-block parsing
 # todo: evaluate the possibility of creating blocklist class to make functions
 #   like get_last_opened_block_that_ends_with more readable
 # todo: create error handling layer
@@ -15,7 +14,7 @@ def parse(txt: typing.Union[str, typing.Generator], schemes: list) -> {list, lis
     """Parse text based on provided list of parsing schemes
     txt can be a string or a generator of strings for when dealing with text inside big files.
     >>> parse('some text', [])
-    []
+    ([], [])
 
     :return: tuple pf lists, first element of tuple is the list of names parsed from the text, second element is a
     list of blocks found, or an empty list if blocks are not applicable.

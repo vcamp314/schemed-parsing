@@ -16,12 +16,11 @@ Installing package with dependencies (update accordingly for actual github link/
 Usage
 ++++++
 How to use this library.
-The Schemed Parsing library has two main methods of parsing:
-1. schemedparsing.parse
-2. schemedparsing.parse_all_lines
+The Schemed Parsing library parse function::
 
-Simple parsing
-***************
+    schemedparsing.parse
+
+
 
 example usage::
 
@@ -29,10 +28,12 @@ example usage::
     schemedparsing.parse('sample text', parsing_schemes)
 
 
-For the structure of the above :code:`parsing_scheme` parameter, please see the parsing scheme example document in the docs folder <./docs/sample-parsing-scheme-example.rst>`
+For the structure of the above :code:`parsing_scheme` parameter, please see the parsing scheme example document in the docs folder <./docs/parsing-scheme-example.rst>`
 
-Block parsing
-***************
+The result will be a tuple of lists, the first element of which will contain the names extracted by the parsing.
+The second element of the tuple will contain any blocks found, or an empty list if none are found.
+
+For examples of how to set up the :code:`parsing_scheme` parameter to include blocks, please see the block parsing example document in the docs folder <./docs/block-parsing-example.rst>`
 
 ++++++++
 Testing
