@@ -1,9 +1,9 @@
 block parsing example
 =================================
-A block here is defined as multiline (one or more lines) of text to be parsed as a single string
-for a particular pattern
+A block here is defined as multiline (one or more lines) of text bounded by a particular starting and ending pattern
+from which a particular text pattern is to be extracted
 
-example composition of a list of schemes  covering a single kind of javascript import statements::
+example composition of a list of schemes covering a single kind of javascript import statements::
 
     {
         "schemes": [
