@@ -34,8 +34,8 @@ example usage::
     names, blocklist = schemedparsing.parse('sample text', parsing_schemes)
 
 
-For the structure of the above :code:`parsing_scheme` parameter, please see the parsing scheme example document in the
-docs folder <./docs/parsing-scheme-example.rst>`
+For the structure of the above :code:`parsing_scheme` parameter, please see the  `parsing scheme example <https://github.com/vcamp314/schemed-parsing/blob/master/docs/parsing-scheme-example.rst>`_ document in the
+docs folder
 
 The result will be a tuple of lists, the first element of which will contain the names extracted by the parsing.
 The second element of the tuple will contain any blocks found, or an empty list if none are found.
@@ -44,7 +44,7 @@ As shown above, this result can be destructured into names and blocklist paramet
 Each element of the names list will contain the index of the block in which it was found, if any blocks are present
 
 For examples of how to set up the :code:`parsing_scheme` parameter to include blocks, and how the parsing results look
-like please see the block parsing example document in the docs folder <./docs/block-parsing-example.rst>`
+like please see the `block parsing example <https://github.com/vcamp314/schemed-parsing/blob/master/docs/block-parsing-example.rst>`_ document in the docs folder <./docs/block-parsing-example.rst>`
 
 ++++++++
 Testing
