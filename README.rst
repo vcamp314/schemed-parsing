@@ -15,7 +15,7 @@ Installation
 +++++++++++++
 Installing package with dependencies::
 
-    $ python3 -m pip install git+https://github.com/user/parse
+    $ python3 -m pip install git+https://github.com/vcamp314/schemed-parsing
 
 ++++++
 Usage
